@@ -32,7 +32,7 @@ func (s *HelloServiceServer) Channel(stream pb.HelloService_ChannelServer) error
 		// 接受client请求
 		req, err := stream.Recv()
 		if err != nil {
-			log.Printf("recv error, %s", err)
+			log.Printf("recv error , %s", err)
 			if err == io.EOF {
 				log.Printf("client closed")
 				return nil
