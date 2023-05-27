@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
+	"grpc/middleware/server"
 	"grpc/sample/server/pb"
 	"io"
 	"log"
@@ -57,10 +58,15 @@ func (s *HelloServiceServer) Channel(stream pb.HelloService_ChannelServer) error
 }
 
 func main() {
-	server := grpc.NewServer()
+	// 获取认证中间件选项
+	reqAuth := server.NewAuthUnaryServerInterceptor()
+	streamAuth := server.NewAuthStreamServerInterceptor()
+
+	// 添加认证中间件
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(reqAuth), grpc.StreamInterceptor(streamAuth))
 
 	// 把实现类注册到grpc server
-	pb.RegisterHelloServiceServer(server, new(HelloServiceServer))
+	pb.RegisterHelloServiceServer(grpcServer, new(HelloServiceServer))
 
 	listen, err := net.Listen("tcp", ":1234")
 	if err != nil {
@@ -69,7 +75,7 @@ func main() {
 
 	log.Printf("grpc listen addr: 127.0.0.1:1234")
 
-	if err := server.Serve(listen); err != nil {
+	if err := grpcServer.Serve(listen); err != nil {
 		panic(err)
 	}
 

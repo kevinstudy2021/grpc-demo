@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+	"grpc/middleware/server"
 	"grpc/sample/server/pb"
 	"time"
 )
@@ -16,13 +18,17 @@ func main() {
 	}
 
 	client := pb.NewHelloServiceClient(conn)
-	resp, err := client.Hello(context.Background(), &pb.Request{Value: "bob"})
+
+	// 添加认证凭证信息
+	MD_Credential := server.NewClientCredential("admin", "123456")
+	ctx := metadata.NewOutgoingContext(context.Background(), MD_Credential)
+	resp, err := client.Hello(ctx, &pb.Request{Value: "bob"})
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(resp.Value)
 
-	stream, err := client.Channel(context.Background())
+	stream, err := client.Channel(ctx)
 	if err != nil {
 		panic(err)
 	}
