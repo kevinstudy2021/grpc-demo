@@ -45,7 +45,7 @@ func (s *HelloServiceServer) Channel(stream pb.HelloService_ChannelServer) error
 		// 响应client请求
 		err = stream.Send(resp)
 		if err != nil {
-			log.Printf("send error %s", err)
+			log.Printf("send error  %s", err)
 			if err == io.EOF {
 				log.Printf("client closed")
 				return nil
