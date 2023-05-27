@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"grpc/middleware/server"
+	client_auth "grpc/middleware/client"
 	"grpc/sample/server/pb"
 	"time"
 )
 
 func main() {
 	// 建立网络链接
-	conn, err := grpc.DialContext(context.Background(), "127.0.0.1:1234", grpc.WithInsecure())
+	// 添加认证信息
+	credential := client_auth.NewAuthentication("admin", "123456")
+	conn, err := grpc.DialContext(context.Background(), "127.0.0.1:1234", grpc.WithInsecure(), grpc.WithPerRPCCredentials(credential))
 	if err != nil {
 		panic(err)
 	}
@@ -20,8 +22,13 @@ func main() {
 	client := pb.NewHelloServiceClient(conn)
 
 	// 添加认证凭证信息
-	MD_Credential := server.NewClientCredential("admin", "123456")
-	ctx := metadata.NewOutgoingContext(context.Background(), MD_Credential)
+	// 方式一、每个请求都要初始化一个凭证，有些麻烦
+	//MD_Credential := server.NewClientCredential("admin", "123456")
+	//ctx := metadata.NewOutgoingContext(context.Background(), MD_Credential)
+
+	// 方式二、批量初始化凭证，每个请求自动添加凭证
+	ctx := metadata.NewOutgoingContext(context.Background(), metadata.Pairs())
+
 	resp, err := client.Hello(ctx, &pb.Request{Value: "bob"})
 	if err != nil {
 		panic(err)
